@@ -1,0 +1,14 @@
+$schema: "http://json-schema.org/draft-07/schema#"
+type: object
+properties:
+  name:
+    type: string
+  path:
+    type: string
+  prefix:
+    type: string
+  suffix:
+    type: string
+required:
+  - name
+  - path
