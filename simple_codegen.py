@@ -93,7 +93,6 @@ def process_template( config_data, class_info, template_meta ):
 
     if not template_meta.name in config_data.template_table:
         print( "template: `{name}` is not found.".format( name = template_meta.name ) )
-        print( config_data.template_table )
         return
 
     template_info = config_data.template_table[ template_meta.name ]
