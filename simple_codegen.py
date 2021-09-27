@@ -68,7 +68,7 @@ def process_output( code_text, config_data, class_info, template_meta ):
 
     os.makedirs( output_dir, exist_ok = True )
 
-    with open( output_path, 'w' ) as fp:
+    with open( output_path, 'w', encoding='utf8' ) as fp:
         fp.write( code_text )
 
 def generate_replace_variables( config_data, class_info, template_info ):
