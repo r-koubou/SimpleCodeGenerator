@@ -56,7 +56,7 @@ def load_template_table():
     template_table  = create_munch( {} )
     template_schema = load_yaml( TEMPLATE_SCHEMA_FILE )
 
-    for x in glob.glob( os.path.join( TEMPLATE_DIR, '**', '*.yaml' ) ):
+    for x in glob.glob( os.path.join( TEMPLATE_DIR, '**', '*.yaml' ), recursive = True ):
         template_infos = load_yaml( x )
         validate_yaml( template_infos, template_schema )
 
