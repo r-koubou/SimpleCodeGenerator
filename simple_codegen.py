@@ -79,15 +79,29 @@ def process_output( code_text, config_data, class_info, template_meta ):
 
     template_info = config_data.template_table[ template_meta.name ]
 
+    file_name_prefix = ''
+    file_name_suffix = ''
+
+    if 'file_name_prefix' in template_meta:
+        file_name_prefix = template_meta.file_name_prefix
+    if 'file_name_suffix' in template_meta:
+        file_name_suffix = template_meta.file_name_suffix
+
+    file_name = "{prefix}{name}{suffix}".format(
+        prefix = file_name_prefix,
+        name = generate_fully_classname( class_info, template_info ),
+        suffix = file_name_suffix
+    )
+
     output_filename = "{name}{suffix}".format(
-        name        = generate_fully_classname( class_info, template_info ),
+        name        = file_name,
         suffix      = config_data.suffix
     )
 
     output_dir = DEFAULT_OUTPUT_DIR
     if 'output_dir' in template_meta:
         output_dir = template_meta.output_dir
-    if 'output_dir' in config_data:
+    elif 'output_dir' in config_data:
         output_dir = config_data.output_dir
 
     output_path = os.path.join( output_dir, output_filename )
@@ -99,7 +113,7 @@ def process_output( code_text, config_data, class_info, template_meta ):
     with open( output_path, 'w', encoding = 'utf8' ) as fp:
         fp.write( code_text )
 
-def generate_replace_variables( config_data, class_info, template_info ):
+def generate_replace_variables( config_data, class_info, template_meta, template_info ):
     values = create_munch( {} )
     values.classname    = generate_fully_classname( class_info, template_info )
     values.prefix       = template_info.prefix
@@ -108,7 +122,9 @@ def generate_replace_variables( config_data, class_info, template_info ):
     values.description  = class_info.description
 
     if len( class_info.namespace ) > 0 :
-        class_info.namespace = class_info.namespace
+        values.namespace = class_info.namespace
+    elif len( template_meta.namespace ) > 0 :
+        values.namespace = template_meta.namespace
     else:
         values.namespace = config_data.namespace
 
@@ -126,7 +142,7 @@ def process_template( config_data, class_info, template_meta ):
     template_info = config_data.template_table[ template_meta.name ]
     template_text = load_template( os.path.join( TEMPLATE_DIR, template_info.path ) )
 
-    values = generate_replace_variables( config_data, class_info, template_info )
+    values = generate_replace_variables( config_data, class_info, template_meta, template_info )
     # print_indent( values, 1 )
 
     code_text = generate_code( template_text, values )
