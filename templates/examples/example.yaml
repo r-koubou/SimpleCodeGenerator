@@ -1,4 +1,4 @@
-name: example
-path: "examples/example.cs"
-prefix: MyPrefix
-suffix: _Suffix
+- name: example
+  path: "examples/example.cs"
+  prefix: MyPrefix
+  suffix: _Suffix

@@ -59,5 +59,5 @@ definitions:
   UserVariables:
     type: object
     properties:
-      __allow_any_key_values__:
+      __allow_any_keys_and_values__:
         type: string
