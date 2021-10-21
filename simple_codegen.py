@@ -166,6 +166,12 @@ def main( argv ):
         for x in config_data.classes:
             process_class( config_data, create_munch( x ) )
 
+def usage():
+    print( "python {script} <config file>".format( script=os.path.basename( __file__ ) ) )
+    print( "see config file schema : {dir}/schema/config.yaml".format( dir=THIS_SCRIPT_DIR ) )
+
 if __name__ == '__main__':
     if len( sys.argv ) > 1:
         main( sys.argv[ 1: ] )
+    else:
+        usage()
