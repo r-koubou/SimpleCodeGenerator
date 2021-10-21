@@ -46,8 +46,23 @@ def load_text( filename, encoding = 'utf8' ):
     with open( filename, mode = 'r', encoding = encoding ) as fp:
         return fp.read()
 
+def preprocess_yaml( filename ):
+    text = load_text( filename )
+    yaml_body = create_munch( yaml.safe_load( text ) )
+    if not 'variables' in yaml_body:
+        return yaml_body
+
+    vars_table = {}
+    for x in yaml_body.variables:
+        vars_table.update(x)
+
+    template = string.Template( text )
+    text = template.substitute( vars_table )
+    result = create_munch( yaml.safe_load( text ) )
+    return result
+
 def load_yaml( filename ) :
-    return create_munch( yaml.safe_load( load_text( filename ) ) )
+    return preprocess_yaml( filename )
 
 def load_template( filename ):
     return string.Template( load_text( filename ) )

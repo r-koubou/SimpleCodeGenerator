@@ -8,6 +8,8 @@ definitions:
   root:
     type: object
     properties:
+      variables:
+        type: array
       namespace:
         type: string
       suffix:
