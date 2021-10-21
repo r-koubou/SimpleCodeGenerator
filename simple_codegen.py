@@ -8,14 +8,29 @@ import jsonschema
 import munch
 
 THIS_SCRIPT_DIR      = os.path.dirname( os.path.abspath( __file__ ) )
+SCHEMA_DIR           = os.path.join( THIS_SCRIPT_DIR, 'schema' )
 TEMPLATE_DIR         = os.path.join( THIS_SCRIPT_DIR, 'templates' )
 DEFAULT_OUTPUT_DIR   = 'out'
-SCHEMA_FILE          = os.path.join( THIS_SCRIPT_DIR, 'schema.yaml' )
-TEMPLATE_SCHEMA_FILE = os.path.join( THIS_SCRIPT_DIR, 'template_schema.yaml' )
+CONFIG_SCHEMA_FILE   = os.path.join( SCHEMA_DIR, 'config.yaml' )
+TEMPLATE_SCHEMA_FILE = os.path.join( SCHEMA_DIR, 'template_info.yaml' )
 
-def create_munch( dictionary, none_altanative = '' ):
-    result = munch.DefaultMunch( '', dictionary )
-    for k in dictionary.keys():
+PRINT_INDENT         = '  '
+
+def print_indent( text, indent_depth = 0 ):
+    print( "{indent}{text}".format(
+        indent = PRINT_INDENT * indent_depth,
+        text   = text
+    ))
+
+def create_munch( yaml_body, none_altanative = '' ):
+    if type( yaml_body ) is list:
+        result = []
+        for x in yaml_body:
+            result.append( create_munch( x, none_altanative ) )
+        return result
+
+    result = munch.DefaultMunch( '', yaml_body )
+    for k in yaml_body.keys():
         if result[ k ] is None:
             result[ k ] = none_altanative
 
@@ -37,6 +52,19 @@ def load_yaml( filename ) :
 def load_template( filename ):
     return string.Template( load_text( filename ) )
 
+def load_template_table():
+    template_table  = create_munch( {} )
+    template_schema = load_yaml( TEMPLATE_SCHEMA_FILE )
+
+    for x in glob.glob( os.path.join( TEMPLATE_DIR, '**', '*.yaml' ), recursive = True ):
+        template_infos = load_yaml( x )
+        validate_yaml( template_infos, template_schema )
+
+        for t in template_infos:
+            template_table[ t.name ] = t
+
+    return template_table
+
 def generate_code( template, parameter_dict = {} ):
     return template.safe_substitute( parameter_dict )
 
@@ -51,27 +79,41 @@ def process_output( code_text, config_data, class_info, template_meta ):
 
     template_info = config_data.template_table[ template_meta.name ]
 
+    file_name_prefix = ''
+    file_name_suffix = ''
+
+    if 'file_name_prefix' in template_meta:
+        file_name_prefix = template_meta.file_name_prefix
+    if 'file_name_suffix' in template_meta:
+        file_name_suffix = template_meta.file_name_suffix
+
+    file_name = "{prefix}{name}{suffix}".format(
+        prefix = file_name_prefix,
+        name = generate_fully_classname( class_info, template_info ),
+        suffix = file_name_suffix
+    )
+
     output_filename = "{name}{suffix}".format(
-        name        = generate_fully_classname( class_info, template_info ),
+        name        = file_name,
         suffix      = config_data.suffix
     )
 
     output_dir = DEFAULT_OUTPUT_DIR
     if 'output_dir' in template_meta:
         output_dir = template_meta.output_dir
-    if 'output_dir' in config_data:
+    elif 'output_dir' in config_data:
         output_dir = config_data.output_dir
 
     output_path = os.path.join( output_dir, output_filename )
 
-    print( "--> " + output_path )
+    print_indent( output_path, 2 )
 
     os.makedirs( output_dir, exist_ok = True )
 
-    with open( output_path, 'w', encoding='utf8' ) as fp:
+    with open( output_path, 'w', encoding = 'utf8' ) as fp:
         fp.write( code_text )
 
-def generate_replace_variables( config_data, class_info, template_info ):
+def generate_replace_variables( config_data, class_info, template_meta, template_info ):
     values = create_munch( {} )
     values.classname    = generate_fully_classname( class_info, template_info )
     values.prefix       = template_info.prefix
@@ -80,7 +122,9 @@ def generate_replace_variables( config_data, class_info, template_info ):
     values.description  = class_info.description
 
     if len( class_info.namespace ) > 0 :
-        class_info.namespace = class_info.namespace
+        values.namespace = class_info.namespace
+    elif len( template_meta.namespace ) > 0 :
+        values.namespace = template_meta.namespace
     else:
         values.namespace = config_data.namespace
 
@@ -92,40 +136,32 @@ def generate_replace_variables( config_data, class_info, template_info ):
 def process_template( config_data, class_info, template_meta ):
 
     if not template_meta.name in config_data.template_table:
-        print( "template: `{name}` is not found.".format( name = template_meta.name ) )
+        print_indent( "  template: `{name}` is not found.".format( name = template_meta.name ), 1 )
         return
 
     template_info = config_data.template_table[ template_meta.name ]
     template_text = load_template( os.path.join( TEMPLATE_DIR, template_info.path ) )
 
-    values = generate_replace_variables( config_data, class_info, template_info )
-    # print( values )
+    values = generate_replace_variables( config_data, class_info, template_meta, template_info )
+    # print_indent( values, 1 )
 
     code_text = generate_code( template_text, values )
     process_output( code_text, config_data, class_info, template_meta )
 
 def process_class( config_data, class_info ):
-    print( class_info.name )
+    print_indent( class_info.name, 1 )
     for x in class_info.templates:
         process_template( config_data, class_info, create_munch( x ) )
 
 def main( argv ):
     for input_file in argv:
-        print( input_file )
+        print_indent( input_file )
 
-        schema_data = load_yaml( SCHEMA_FILE )
+        schema_data = load_yaml( CONFIG_SCHEMA_FILE )
         config_data = load_yaml( input_file )
         validate_yaml( config_data, schema_data )
 
-        template_table  = create_munch( {} )
-        template_schema = load_yaml( TEMPLATE_SCHEMA_FILE )
-        for x in glob.glob( os.path.join( TEMPLATE_DIR, '**', '*.yaml' ) ):
-            template_info = load_yaml( x )
-            validate_yaml( template_info, template_schema )
-
-            template_table[ template_info.name ] = template_info
-
-        config_data.template_table = template_table
+        config_data.template_table = load_template_table()
 
         for x in config_data.classes:
             process_class( config_data, create_munch( x ) )
