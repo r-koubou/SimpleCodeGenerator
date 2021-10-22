@@ -75,8 +75,8 @@ def load_template_table():
         template_infos = load_yaml( x )
         validate_yaml( template_infos, template_schema )
 
-        for t in template_infos:
-            template_table[ t.name ] = t
+        for t in template_infos.templates:
+            template_table[ t[ 'name' ] ] = munch.DefaultMunch( '', t )
 
     return template_table
 

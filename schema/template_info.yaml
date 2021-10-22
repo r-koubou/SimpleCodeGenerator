@@ -3,9 +3,14 @@ $ref: "#/definitions/root"
 
 definitions:
   root:
-    type: array
-    items:
-      $ref: "#/definitions/TemplateInfo"
+    type: object
+    properties:
+      templates:
+        type: array
+        items:
+          $ref: "#/definitions/TemplateInfo"
+    required:
+      - templates
 
   TemplateInfo:
     type: object
