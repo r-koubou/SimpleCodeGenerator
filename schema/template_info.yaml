@@ -21,8 +21,10 @@ definitions:
         type: string
       prefix:
         type: string
+        default: ""
       suffix:
         type: string
+        default: ""
     required:
       - name
       - path

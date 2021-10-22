@@ -49,7 +49,7 @@ def load_text( filename, encoding = 'utf8' ):
 def preprocess_yaml( filename ):
     text = load_text( filename )
     yaml_body = create_munch( yaml.safe_load( text ) )
-    if not 'variables' in yaml_body:
+    if len( yaml_body.variables ) == 0:
         return yaml_body
 
     vars_table = {}
@@ -97,9 +97,9 @@ def process_output( code_text, config_data, class_info, template_meta ):
     file_name_prefix = ''
     file_name_suffix = ''
 
-    if 'file_name_prefix' in template_meta:
+    if len( template_meta.file_name_prefix ) > 0:
         file_name_prefix = template_meta.file_name_prefix
-    if 'file_name_suffix' in template_meta:
+    if len( template_meta.file_name_suffix ) > 0:
         file_name_suffix = template_meta.file_name_suffix
 
     file_name = "{prefix}{name}{suffix}".format(
@@ -114,9 +114,9 @@ def process_output( code_text, config_data, class_info, template_meta ):
     )
 
     output_dir = DEFAULT_OUTPUT_DIR
-    if 'output_dir' in template_meta:
+    if len( template_meta.output_dir ) > 0:
         output_dir = template_meta.output_dir
-    elif 'output_dir' in config_data:
+    elif len( config_data.output_dir ) > 0:
         output_dir = config_data.output_dir
 
     output_path = os.path.join( output_dir, output_filename )
