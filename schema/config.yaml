@@ -8,14 +8,20 @@ definitions:
   root:
     type: object
     properties:
+      variables:
+        type: array
+        default: []
       namespace:
         type: string
+        default: ""
       suffix:
         type: string
       output_dir:
         type: string
+        default: ""
       classes:
         type: array
+        default: []
         items:
           $ref: "#/definitions/Class"
     required:
@@ -30,10 +36,13 @@ definitions:
         type: string
       description:
         type: string
+        default: ""
       namespace:
         type: string
+        default: ""
       templates:
         type: array
+        default: []
         items:
           $ref: '#/definitions/TemplateMeta'
       user_variables:
@@ -51,12 +60,16 @@ definitions:
         type: string
       namespace:
         type: string
+        default: ""
       output_dir:
         type: string
+        default: ""
       file_name_prefix:
         type: string
+        default: ""
       file_name_suffix:
         type: string
+        default: ""
     required:
       - name
   #---------------------------------------------------------
