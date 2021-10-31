@@ -1,5 +1,9 @@
+variables:
+  - PREFIX: MyPrefix
+  - SUFFIX: _Suffix
+
 templates:
   - name: example
     path: "examples/example.cs"
-    prefix: MyPrefix
-    suffix: _Suffix
+    prefix: ${PREFIX}
+    suffix: ${SUFFIX}

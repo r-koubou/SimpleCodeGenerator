@@ -1,9 +1,12 @@
+variables:
+  - NAME: MyClass
+
 namespace: com.example.hoge
 suffix: ".cs"
 output_dir: out/examples
 
 classes:
-  - name: MyClass
+  - name: ${NAME}
     description: This is an example class
     templates:
       - name: example

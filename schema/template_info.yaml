@@ -5,6 +5,9 @@ definitions:
   root:
     type: object
     properties:
+      variables:
+        type: array
+        default: []
       templates:
         type: array
         items:
