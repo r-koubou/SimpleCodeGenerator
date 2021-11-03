@@ -136,10 +136,10 @@ def generate_replace_variables( config_data, class_info, template_meta, template
     values.name         = class_info.name
     values.description  = class_info.description
 
-    if len( class_info.namespace ) > 0 :
-        values.namespace = class_info.namespace
-    elif len( template_meta.namespace ) > 0 :
+    if len( template_meta.namespace ) > 0 :
         values.namespace = template_meta.namespace
+    elif len( class_info.namespace ) > 0 :
+        values.namespace = class_info.namespace
     else:
         values.namespace = config_data.namespace
 
