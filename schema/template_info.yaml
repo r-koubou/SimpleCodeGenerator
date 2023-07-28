@@ -3,9 +3,17 @@ $ref: "#/definitions/root"
 
 definitions:
   root:
-    type: array
-    items:
-      $ref: "#/definitions/TemplateInfo"
+    type: object
+    properties:
+      variables:
+        type: array
+        default: []
+      templates:
+        type: array
+        items:
+          $ref: "#/definitions/TemplateInfo"
+    required:
+      - templates
 
   TemplateInfo:
     type: object
@@ -16,8 +24,10 @@ definitions:
         type: string
       prefix:
         type: string
+        default: ""
       suffix:
         type: string
+        default: ""
     required:
       - name
       - path

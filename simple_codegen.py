@@ -46,8 +46,23 @@ def load_text( filename, encoding = 'utf8' ):
     with open( filename, mode = 'r', encoding = encoding ) as fp:
         return fp.read()
 
+def preprocess_yaml( filename ):
+    text = load_text( filename )
+    yaml_body = create_munch( yaml.safe_load( text ) )
+    if len( yaml_body.variables ) == 0:
+        return yaml_body
+
+    vars_table = {}
+    for x in yaml_body.variables:
+        vars_table.update(x)
+
+    template = string.Template( text )
+    text = template.substitute( vars_table )
+    result = create_munch( yaml.safe_load( text ) )
+    return result
+
 def load_yaml( filename ) :
-    return create_munch( yaml.safe_load( load_text( filename ) ) )
+    return preprocess_yaml( filename )
 
 def load_template( filename ):
     return string.Template( load_text( filename ) )
@@ -60,8 +75,8 @@ def load_template_table():
         template_infos = load_yaml( x )
         validate_yaml( template_infos, template_schema )
 
-        for t in template_infos:
-            template_table[ t.name ] = t
+        for t in template_infos.templates:
+            template_table[ t[ 'name' ] ] = munch.DefaultMunch( '', t )
 
     return template_table
 
@@ -82,9 +97,9 @@ def process_output( code_text, config_data, class_info, template_meta ):
     file_name_prefix = ''
     file_name_suffix = ''
 
-    if 'file_name_prefix' in template_meta:
+    if len( template_meta.file_name_prefix ) > 0:
         file_name_prefix = template_meta.file_name_prefix
-    if 'file_name_suffix' in template_meta:
+    if len( template_meta.file_name_suffix ) > 0:
         file_name_suffix = template_meta.file_name_suffix
 
     file_name = "{prefix}{name}{suffix}".format(
@@ -99,9 +114,9 @@ def process_output( code_text, config_data, class_info, template_meta ):
     )
 
     output_dir = DEFAULT_OUTPUT_DIR
-    if 'output_dir' in template_meta:
+    if len( template_meta.output_dir ) > 0:
         output_dir = template_meta.output_dir
-    elif 'output_dir' in config_data:
+    elif len( config_data.output_dir ) > 0:
         output_dir = config_data.output_dir
 
     output_path = os.path.join( output_dir, output_filename )
@@ -121,10 +136,10 @@ def generate_replace_variables( config_data, class_info, template_meta, template
     values.name         = class_info.name
     values.description  = class_info.description
 
-    if len( class_info.namespace ) > 0 :
-        values.namespace = class_info.namespace
-    elif len( template_meta.namespace ) > 0 :
+    if len( template_meta.namespace ) > 0 :
         values.namespace = template_meta.namespace
+    elif len( class_info.namespace ) > 0 :
+        values.namespace = class_info.namespace
     else:
         values.namespace = config_data.namespace
 
